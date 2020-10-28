@@ -45,9 +45,7 @@ class _ARHomeState extends State<ARHome> {
       image: image,
       position: Vector3(0, 0, -3),
     );
-    // controller.loadAugmentedImagesDatabase(bytes: imageData.buffer.asUint8List());
     controller.addArCoreNode(node);
-    // controller.addArCoreNodeToAugmentedImage(node, 1);
   }
 
   @override
