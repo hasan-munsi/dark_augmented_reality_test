@@ -1,10 +1,9 @@
-import 'dart:io';
-import 'dart:typed_data';
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
 import 'package:flutter/services.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math_64.dart' as vector;
 
 class ARHome extends StatefulWidget {
 
@@ -14,38 +13,53 @@ class ARHome extends StatefulWidget {
 
 class _ARHomeState extends State<ARHome> {
   ArCoreController _controller;
-  ByteData imageData;
+  ByteData earthImageData;
+  ByteData moonImageData;
 
   @override
   void initState() {
     super.initState();
-    rootBundle.load('images/111.png')
-        .then((data) => setState(() => this.imageData = data));
+    rootBundle.load('images/earth.jpg')
+        .then((data) => setState(() => this.earthImageData = data));
+    rootBundle.load('images/moon.jpg')
+        .then((data) => setState(() => this.moonImageData = data));
   }
   _arCoreCreated(ArCoreController controller){
     _controller = controller;
-    _addCube(_controller);
+    _controller.onPlaneTap = _addCube;
+
+    // _controller.onPlaneDetected = _addCube;
   }
 
-  _addCube(ArCoreController controller){
-    final material = ArCoreMaterial(
-      color: Color(0xFF00FF00),
-      metallic: 1.0,
+  _addCube(List<ArCoreHitTestResult> hits){
+    final plane = hits.first;
+    final moonMaterial = ArCoreMaterial(
+      color: Colors.blue,
+      textureBytes: moonImageData.buffer.asUint8List(),
     );
-    final image = ArCoreImage(
-      width: 500,
-      height: 500,
-      bytes: imageData.buffer.asUint8List(),
+    final moonShape = ArCoreSphere(
+      radius: 0.1,
+      materials: [moonMaterial],
     );
-    final cube = ArCoreSphere(
-      materials: [material],
-      radius: 0.5,
+    final moonNode = ArCoreNode(
+      shape: moonShape,
+      position: vector.Vector3(0,1,-1),
+    );
+    final earthMaterial = ArCoreMaterial(
+      color: Colors.blue,
+      textureBytes: earthImageData.buffer.asUint8List(),
+    );
+    final earthSphere = ArCoreSphere(
+      materials: [earthMaterial],
+      radius: 0.3,
     );
     final node = ArCoreNode(
-      image: image,
-      position: Vector3(0, 0, -3),
+      shape: earthSphere,
+      children: [moonNode],
+      position: plane.pose.translation + vector.Vector3(0.0, 0.0, 0.0),
+      rotation: plane.pose.rotation,
     );
-    controller.addArCoreNode(node);
+    _controller.addArCoreNodeWithAnchor(node);
   }
 
   @override
@@ -59,6 +73,7 @@ class _ARHomeState extends State<ARHome> {
     return Scaffold(
       body: ArCoreView(
         onArCoreViewCreated: _arCoreCreated,
+        enableTapRecognizer: true,
       ),
     );
   }

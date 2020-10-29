@@ -49,9 +49,6 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
               'Augmented Reality Test 1',
               style: Theme.of(context).textTheme.headline4,
             ),
